@@ -1,0 +1,57 @@
+<%= stylesheet_link_tag    'like', media: 'all', 'data-turbolinks-track' => true %>
+<%= stylesheet_link_tag    'cardstyle', media: 'all', 'data-turbolinks-track' => true %>
+<%= javascript_pack_tag 'like', 'data-turbolinks-track': 'reload' %>
+
+
+
+
+
+
+
+
+  <!-- !PAGE CONTENT! -->
+  <div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
+
+    <%= form_tag posts_path, :method => 'get' do %>
+          <%= render partial: "dropdown", locals: {w: @stars}, locals: {what: "search"} %>
+          <%= submit_tag "Search" %>
+    <% end %>
+    
+    
+    
+    <!-- !검색창T! -->  
+    <div class="search-container">
+
+    </div>
+  
+  
+  
+      <!-- First Photo Grid-->
+    <div data-controller="infinite-scroll" id="posts">
+      <div data-target="infinite-scroll.entries">
+        <div class="card-w3">
+           <%= render :partial => "posts/posts" , locals: {w: @posts} %>
+        </div>
+      </div>
+  
+  <div id="new-post">
+    <%= link_to 'New Post', new_post_path %>
+  </div>
+  
+  
+  
+  		<!-- Pagination -->
+  <div data-target="infinite-scroll.pagination">
+      <div class="no-need">
+        		  <div class="no-need2">
+        			  <%== pagy_nav(@pagy) %>
+        		  </div>
+      </div>
+  </div>
+
+
+  <!-- End page content -->
+  </div>
+
+
+

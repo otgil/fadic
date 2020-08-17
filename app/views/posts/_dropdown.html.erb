@@ -1,0 +1,232 @@
+  <%= stylesheet_link_tag    'dropdown', media: 'all', 'data-turbolinks-track' => true %>
+  
+  <div class="container">
+    <div class="input-group js-choose-country">
+      <input type="text" placeholder="Choose Country" readonly="readonly" name="<%= what %>" id="<%= what %>"/>
+      <div class="dropdown-filter custom-scroll"><span class="dropdown-filter__no-result">No result</span>
+        <div class="dropdown-filter__input">
+          <input type="text" placeholder="Choose Country"/>
+        </div>
+        <div class="dropdown-filter__list"></div>
+      </div>
+    </div>
+  </div>
+  
+  <script> 
+(function () {
+  let filterInput = $(".js-choose-country");
+
+  let countries = [
+    
+    <% @stars.each do |w| %>
+      "<%= w.who%>",
+    <% end %>
+  ];
+
+  // function for fill ul from array
+
+  function appendCountries(arr) {
+    countries.sort();
+    filterInput.find(".dropdown-filter__list").append("<ul></ul>");
+    for (let i = 0; i < arr.length; i++) {
+      filterInput.find("ul").append("<li>" + arr[i] + "</li>");
+    }
+  }
+
+  function firstVisibleItem(arr) {
+    let res = null;
+    arr.each(function (index) {
+      if (arr.eq(index).attr("style") === undefined) {
+        res = arr.eq(index);
+        return false;
+      }
+    });
+    return res;
+  }
+
+  function getIndexOfLastVisibleItem(arr) {
+    let res = 0;
+    arr.each(function (index) {
+      if (arr.eq(index).attr("style") === undefined) {
+        res = index;
+      }
+    });
+    return res;
+  }
+
+  function getIndexOfActiveElement(arr) {
+    let result = 0;
+    arr.each(function (index) {
+      if (arr.eq(index).hasClass("active")) {
+        result = index;
+        return false;
+      }
+    });
+    return result;
+  }
+
+  // filter input value
+
+  function containItem(arr, str) {
+    arr.each(function (index) {
+      if (
+        arr.eq(index).text().substring(0, str.length).toLowerCase() !==
+        str.toLowerCase()
+      ) {
+        arr.eq(index).hide();
+      } else {
+        arr.eq(index).removeAttr("style");
+      }
+    });
+  }
+
+  function clearActive(arr) {
+    arr.each(function (index) {
+      if (arr.eq(index).hasClass("active")) {
+        arr.eq(index).removeClass("active");
+      }
+    });
+  }
+
+  function findActiveText(arr) {
+    let text = "";
+    arr.each(function (index) {
+      if (arr.eq(index).hasClass("active")) {
+        text = arr.eq(index).text();
+        return false;
+      }
+    });
+    return text;
+  }
+
+  function fillFiels(arr) {
+    $(".js-choose-country input").val(findActiveText(arr));
+    filterInput.removeClass("hideContent");
+    filterInput.removeClass("drop");
+  }
+
+  if (filterInput.length) {
+    appendCountries(countries);
+
+    let listItem = filterInput.find("li"),
+      index = 0,
+      start = 0,
+      end = 0;
+
+    listItem.eq(0).addClass("active");
+
+    filterInput.children("input").click(function () {
+      if ($(this).val().trim() !== "") {
+        filterCountries(listItem);
+      }
+      $(this).parent().addClass("hideContent");
+      $(this).parent().addClass("drop");
+      filterInput.find(".dropdown-filter__input").children("input").focus();
+      end = countries.length - 1;
+    });
+
+    function filterCountries() {
+      setTimeout(function () {
+        containItem(
+          filterInput.find("li"),
+          filterInput.find(".dropdown-filter__input").children("input").val()
+        );
+      }, 10);
+    }
+
+    listItem.click(function () {
+      index = listItem.index(this);
+      start = index;
+      end = index;
+      clearActive(listItem);
+      $(this).addClass("active");
+      fillFiels(listItem);
+      console.log(start, end, index);
+    });
+
+    filterInput
+      .find(".dropdown-filter__input")
+      .children("input")
+      .keypress(function () {
+        filterCountries();
+        setTimeout(function () {
+          clearActive(listItem);
+          if (firstVisibleItem(listItem) !== null) {
+            if (filterInput.children(".dropdown-filter").hasClass("error")) {
+              filterInput.children(".dropdown-filter").removeClass("error");
+            }
+            firstVisibleItem(listItem).addClass("active");
+          } else {
+            filterInput.children(".dropdown-filter").addClass("error");
+          }
+          index = getIndexOfActiveElement(listItem);
+          start = index;
+          end = getIndexOfLastVisibleItem(listItem);
+        }, 10);
+      });
+
+    filterInput
+      .find(".dropdown-filter__input")
+      .children("input")
+      .keydown(function (e) {
+        if (e.keyCode === 8) {
+          filterCountries();
+          setTimeout(function () {
+            clearActive(listItem);
+            if (firstVisibleItem(listItem) !== null) {
+              if (filterInput.children(".dropdown-filter").hasClass("error")) {
+                filterInput.children(".dropdown-filter").removeClass("error");
+              }
+              firstVisibleItem(listItem).addClass("active");
+            } else {
+              filterInput.children(".dropdown-filter").addClass("error");
+            }
+            index = getIndexOfActiveElement(listItem);
+            start = index;
+            end = getIndexOfLastVisibleItem(listItem);
+          }, 10);
+        } else if (e.keyCode === 40 && filterInput.hasClass("drop")) {
+          end = getIndexOfLastVisibleItem(listItem);
+          index++;
+          if (index > end) {
+            index = end;
+          } else {
+            clearActive(listItem);
+            listItem.eq(index).addClass("active");
+          }
+        } else if (e.keyCode === 38 && filterInput.hasClass("drop")) {
+          end = getIndexOfLastVisibleItem(listItem);
+          index--;
+          if (index < start) {
+            index = start;
+          } else {
+            clearActive(listItem);
+            listItem.eq(index).addClass("active");
+          }
+        } else if (e.keyCode === 13 && filterInput.hasClass("drop")) {
+          clearActive(listItem);
+          listItem.eq(index).addClass("active");
+          fillFiels(listItem);
+        }
+      });
+
+    $(document).on("click touchstart", function (e) {
+      if (!$(e.target).closest(filterInput).length) {
+        if (
+          filterInput
+            .find(".dropdown-filter__input")
+            .children("input")
+            .val()
+            .trim() === ""
+        ) {
+          filterInput.children("input").val("");
+        }
+        filterInput.removeClass("hideContent");
+        filterInput.removeClass("drop");
+      }
+    });
+  }
+})();
+
+
+</script>
